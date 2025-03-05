@@ -1,0 +1,161 @@
+
+const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
+const bodyParser = require('body-parser');
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Middleware
+app.use(bodyParser.json());
+
+// Create database connection
+const db = new sqlite3.Database('./aggregates.db', (err) => {
+  if (err) {
+    console.error('Error connecting to database:', err.message);
+  } else {
+    console.log('Connected to the aggregates database.');
+    
+    // Create table if it doesn't exist
+    db.run(`CREATE TABLE IF NOT EXISTS Aggregates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      looseDensity REAL,
+      compactedDensity REAL,
+      category TEXT
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating table:', err.message);
+      } else {
+        console.log('Aggregates table ready');
+      }
+    });
+  }
+});
+
+// CRUD Endpoints
+
+// GET all aggregates
+app.get('/api/aggregates', (req, res) => {
+  db.all('SELECT * FROM Aggregates', [], (err, rows) => {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json(rows);
+  });
+});
+
+// GET a single aggregate by id
+app.get('/api/aggregates/:id', (req, res) => {
+  const id = req.params.id;
+  db.get('SELECT * FROM Aggregates WHERE id = ?', [id], (err, row) => {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    if (!row) {
+      return res.status(404).json({ error: 'Aggregate not found' });
+    }
+    res.json(row);
+  });
+});
+
+// POST a new aggregate
+app.post('/api/aggregates', (req, res) => {
+  const { name, looseDensity, compactedDensity, category } = req.body;
+  
+  if (!name) {
+    return res.status(400).json({ error: 'Aggregate name is required' });
+  }
+  
+  db.run(
+    'INSERT INTO Aggregates (name, looseDensity, compactedDensity, category) VALUES (?, ?, ?, ?)',
+    [name, looseDensity, compactedDensity, category],
+    function(err) {
+      if (err) {
+        console.error(err.message);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+      res.status(201).json({ 
+        id: this.lastID,
+        name, 
+        looseDensity, 
+        compactedDensity, 
+        category 
+      });
+    }
+  );
+});
+
+// PUT (update) an aggregate
+app.put('/api/aggregates/:id', (req, res) => {
+  const id = req.params.id;
+  const { name, looseDensity, compactedDensity, category } = req.body;
+  
+  if (!name) {
+    return res.status(400).json({ error: 'Aggregate name is required' });
+  }
+  
+  db.run(
+    'UPDATE Aggregates SET name = ?, looseDensity = ?, compactedDensity = ?, category = ? WHERE id = ?',
+    [name, looseDensity, compactedDensity, category, id],
+    function(err) {
+      if (err) {
+        console.error(err.message);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Aggregate not found' });
+      }
+      
+      res.json({ 
+        id: parseInt(id), 
+        name, 
+        looseDensity, 
+        compactedDensity, 
+        category 
+      });
+    }
+  );
+});
+
+// DELETE an aggregate
+app.delete('/api/aggregates/:id', (req, res) => {
+  const id = req.params.id;
+  
+  db.run('DELETE FROM Aggregates WHERE id = ?', [id], function(err) {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Aggregate not found' });
+    }
+    
+    res.status(200).json({ message: 'Aggregate deleted successfully' });
+  });
+});
+
+// Basic route for testing
+app.get('/', (req, res) => {
+  res.send('Construction Aggregates API is running. Use /api/aggregates endpoint to access data.');
+});
+
+// Start server
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running at http://0.0.0.0:${port}`);
+});
+
+// Handle application shutdown
+process.on('SIGINT', () => {
+  db.close((err) => {
+    if (err) {
+      console.error(err.message);
+    }
+    console.log('Closed the database connection.');
+    process.exit(0);
+  });
+});
