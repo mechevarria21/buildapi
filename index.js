@@ -4,6 +4,7 @@ const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -31,6 +32,13 @@ const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Middleware
+// Configure CORS - adjust allowed origins as needed
+const corsOptions = {
+  origin: '*', // Allow all origins, or specify your client domains: ['https://example.com', 'https://app.example.com']
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 // Create database connection
