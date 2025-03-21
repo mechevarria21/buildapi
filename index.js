@@ -20,20 +20,28 @@ const swaggerOptions = {
         name: 'API Support'
       },
       servers: [{
-        url: `http://0.0.0.0:${port}`
+        url: '/',
+        description: 'API Server'
       }]
-    }
+    },
+    basePath: '/'
   },
   apis: ['index.js']
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', (req, res, next) => {
+  // Ensure consistent base path
+  req.baseUrl = '/';
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
   next();
-}, swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+}, swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Build API'
+}));
 
 // Middleware
 // Configure CORS - adjust allowed origins as needed
