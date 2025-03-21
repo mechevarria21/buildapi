@@ -1,4 +1,3 @@
-
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
@@ -14,7 +13,7 @@ const swaggerOptions = {
   swaggerDefinition: {
     openapi: '3.0.0',
     info: {
-      title: 'Construction Aggregates API',
+      title: 'Build API',
       description: 'API for managing construction aggregate materials',
       version: '1.0.0',
       contact: {
