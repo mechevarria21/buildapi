@@ -26,7 +26,24 @@ const swaggerOptions = {
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
-  customSiteTitle: 'Build API'
+  customSiteTitle: 'Build API',
+  customCss: '.swagger-ui .topbar { display: none }',
+  customJs: `
+    // Force title to be Build API
+    document.title = 'Build API';
+    // Prevent title changes
+    Object.defineProperty(document, 'title', {
+      get: function() { return 'Build API'; },
+      set: function() { return 'Build API'; }
+    });
+    // Force Swagger UI title
+    window.onload = function() {
+      const titleElement = document.querySelector('.swagger-ui .title');
+      if (titleElement) {
+        titleElement.textContent = 'Build API';
+      }
+    };
+  `
 }));
 
 // Middleware
