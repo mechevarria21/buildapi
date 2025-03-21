@@ -28,7 +28,12 @@ const swaggerOptions = {
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use('/api-docs', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+}, swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Middleware
 // Configure CORS - adjust allowed origins as needed
@@ -353,7 +358,7 @@ app.get('/', (req, res) => {
   res.send(`
     <html>
       <head>
-        <title>Construction Aggregates API</title>
+        <title>Build API</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -386,7 +391,7 @@ app.get('/', (req, res) => {
         </style>
       </head>
       <body>
-        <h1>Construction Aggregates API</h1>
+        <h1>Build API</h1>
         <p>Your API for managing construction aggregate materials is running successfully.</p>
         <h2>Available Endpoints:</h2>
         <ul>
