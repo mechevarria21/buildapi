@@ -18,28 +18,14 @@ const swaggerOptions = {
       version: '1.0.0',
       contact: {
         name: 'API Support'
-      },
-      servers: [{
-        url: '/',
-        description: 'API Server'
-      }]
-    },
-    basePath: '/'
+      }
+    }
   },
   apis: ['index.js']
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use('/api-docs', (req, res, next) => {
-  // Ensure consistent base path
-  req.baseUrl = '/';
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  next();
-}, swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
   customSiteTitle: 'Build API'
 }));
 
